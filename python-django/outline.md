@@ -36,3 +36,9 @@
 ---
 
 [Список всех курсов](../README.md)
+
+---
+
+# Схема таблиц курса python-django
+
+<img src="img/models.png" alt="Модели" width="1000">
