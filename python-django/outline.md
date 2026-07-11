@@ -33,6 +33,11 @@
 - [Урок 17. Валидация полей. Пользовательские валидаторы](lesson17.md)
 - [Урок 18. Загрузка файлов (FileField, ImageField). Отображение медиафайлов](lesson18.md)
 
+## Модуль 6. Классы представлений (CBV)
+
+- [Урок 19. Введение в CBV: View и TemplateView. Когда FBV, когда CBV](lesson19.md)
+- [Урок 20. ListView и DetailView](lesson20.md)
+
 ---
 
 [Список всех курсов](../README.md)
