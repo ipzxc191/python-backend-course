@@ -40,6 +40,10 @@
 - [Урок 21. FormView, CreateView, UpdateView, DeleteView](lesson21.md)
 - [Урок 22. Mixins. Пагинация с ListView](lesson22.md)
 
+## Модуль 7. Авторизация и пользователи
+
+- [Урок 23. Система авторизации Django. LoginView, LogoutView, login_required, LoginRequiredMixin](lesson23.md)
+
 ---
 
 [Список всех курсов](../README.md)
