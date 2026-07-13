@@ -38,6 +38,7 @@
 - [Урок 19. Введение в CBV: View и TemplateView. Когда FBV, когда CBV](lesson19.md)
 - [Урок 20. ListView и DetailView](lesson20.md)
 - [Урок 21. FormView, CreateView, UpdateView, DeleteView](lesson21.md)
+- [Урок 22. Mixins. Пагинация с ListView](lesson22.md)
 
 ---
 
