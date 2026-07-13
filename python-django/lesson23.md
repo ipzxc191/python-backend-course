@@ -133,6 +133,8 @@ templates/
         <input type="hidden" name="next" value="{{ next }}">
         <button type="submit">Войти</button>
     </form>
+
+    {% comment %} <p>Ещё нет аккаунта? <a href="{% url 'register' %}">Зарегистрироваться</a></p> {% endcomment %}
 {% endblock %}
 ```
 
