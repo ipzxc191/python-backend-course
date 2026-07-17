@@ -45,6 +45,7 @@
 - [Урок 23. Система авторизации Django. LoginView, LogoutView, login_required, LoginRequiredMixin](lesson23.md)
 - [Урок 24. Регистрация. UserCreationForm. Авторизация через email](lesson24.md)
 - [Урок 25. Смена и восстановление пароля. Настройка SMTP](lesson25.md)
+- [Урок 26. AbstractUser. Профиль пользователя. Контекстные процессоры](lesson26.md)
 
 ---
 
