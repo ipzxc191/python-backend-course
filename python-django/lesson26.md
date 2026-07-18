@@ -60,8 +60,17 @@ class RegisterView(CreateView):
 
     def form_valid(self, form):
         response = super().form_valid(form)
-        UserProfile.objects.create(user=self.object)
-        login(self.request, self.object)
+        
+        UserProfile.objects.create(user=self.object)  # создаем профиль пользователя
+        
+        user = authenticate(
+            self.request,
+            username=form.cleaned_data['email'],
+            password=form.cleaned_data['password1'],
+        )
+
+        if user is not None:
+            login(self.request, user)
         return response
 ```
 
