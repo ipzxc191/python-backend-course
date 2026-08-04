@@ -24,12 +24,26 @@ python manage.py dumpdata --output=db_backup.json --indent=2
 
 Это выгрузит **все** данные из всех таблиц. Но стандартные таблицы Django (сессии, типы контента, логи) при загрузке в новую БД могут создать конфликты. Лучше выгружать только нужные приложения:
 
+*Если вы работаете на Windows и при загрузке фикстуры возникают ошибки кодировки, используйте следующую команду:*
+
+```bash
+python -Xutf8 manage.py dumpdata --output=db_backup.json --indent=2
+```
+
+Флаг `-Xutf8` запускает Python в режиме UTF-8 независимо от региональных настроек Windows.
+
+---
+
 ```bash
 # Выгрузить только данные приложения films
 python manage.py dumpdata films --output=films_data.json --indent=2
+# для Windows
+python -Xutf8 manage.py dumpdata films --output=films_data.json --indent=2
 
 # Выгрузить пользователей и группы
 python manage.py dumpdata auth.user auth.group --output=users_data.json --indent=2
+# для Windows
+python -Xutf8 manage.py dumpdata auth.user auth.group --output=users_data.json --indent=2
 ```
 
 Посмотрим на структуру файла:
@@ -68,6 +82,17 @@ python manage.py dumpdata \
     --exclude=auth.permission \
     --exclude=sessions \
     --output=full_backup.json \
+    --indent=2
+```
+
+**для Windows PowerShell:**
+
+```bash
+python -Xutf8 manage.py dumpdata `
+    --exclude=contenttypes `
+    --exclude=auth.permission `
+    --exclude=sessions `
+    --output=full_backup.json `
     --indent=2
 ```
 
@@ -251,7 +276,7 @@ Password for user postgres:
 postgres=#
 ```
 
-> **Важно:** при вводе пароля в PowerShell символы не отображаются на экране. Это нормальное поведение. Просто введите пароль и нажмите `Enter`.
+> **Важно:** при вводе пароля символы не отображаются на экране. Это нормальное поведение. Просто введите пароль и нажмите `Enter`.
 
 ---
 
@@ -318,6 +343,31 @@ GRANT ALL ON SCHEMA public TO filmsite_user;
 ---
 
 ## Часть 3. Настройка Django
+
+### Установка psycopg2
+
+`psycopg2` — это специальная библиотека, которая позволяет Python работать с базой данных PostgreSQL. Сам Django не умеет напрямую отправлять SQL-запросы в PostgreSQL.
+
+Когда вы вызываете, например `Film.objects.all()`, Django строит SQL-запрос, а затем передаёт его библиотеке `psycopg2`. Она устанавливает соединение с PostgreSQL, отправляет запрос серверу базы данных, получает результат и возвращает его обратно Django.
+
+`psycopg2` часто называют **адаптером** — он выступает посредником между Python и PostgreSQL.
+
+Существует две основные версии этой библиотеки:
+
+* `psycopg2-binary` — библиотека устанавливается сразу и не требует дополнительной настройки системы;
+* `psycopg2` — этот пакет содержит исходный код библиотеки. Во время установки он компилируется непосредственно на вашем компьютере.
+
+Предварительно собранные бинарные файлы (`psycopg2-binary`) отлично подходят для разработки: они устанавливаются буквально одной командой и позволяют сразу начать работу.
+
+Однако на боевых серверах чаще используют обычный `psycopg2`, который собирается непосредственно под конкретную операционную систему и установленную версию PostgreSQL. Такой вариант считается более надёжным и рекомендуется разработчиками библиотеки для production-окружения.
+
+**Во время обучения мы будем использовать:**
+
+```bash
+pip install psycopg2-binary
+```
+
+---
 
 ### Обновляем settings.py
 
@@ -413,6 +463,15 @@ Fixtures полезны не только для миграции — это с�
 # Создать фикстуру с тестовыми жанрами
 python manage.py dumpdata films.genre \
     --output=films/fixtures/genres.json \
+    --indent=2
+```
+
+**для Windows PowerShell:**
+
+```bash
+# Создать фикстуру с тестовыми жанрами
+python -Xutf8 manage.py dumpdata films.genre `
+    --output=films/fixtures/genres.json `
     --indent=2
 ```
 
@@ -823,6 +882,94 @@ filmsite_db=>
 ```
 
 Это наиболее распространённый способ работы с PostgreSQL в повседневной разработке.
+
+## Полностью очистить PostgreSQL
+
+Если необходимо полностью начать работу заново, можно удалить все созданные базы данных и пользователей, оставив только стандартного пользователя `postgres`.
+
+> ⚠️ **Внимание!** Все данные будут безвозвратно удалены.
+
+**Подключиться под пользователем `postgres`**
+
+```bash
+psql -U postgres
+```
+
+**Посмотреть существующие базы данных**:
+
+```sql
+\l
+```
+
+Например:
+
+```text
+postgres
+filmsite_db
+shop_db
+test_db
+```
+
+*`postgres` — это системная база данных. Её удалять не нужно.*
+
+**Удалить созданные базы данных**:
+
+Если к базе подключены пользователи, сначала необходимо разорвать все активные соединения:
+
+```sql
+SELECT pg_terminate_backend(pid)
+FROM pg_stat_activity
+WHERE datname = 'filmsite_db'
+  AND pid <> pg_backend_pid();
+```
+
+После этого можно удалить базу:
+
+```sql
+DROP DATABASE filmsite_db;
+```
+
+Аналогично удаляются остальные базы данных:
+
+```sql
+DROP DATABASE shop_db;
+DROP DATABASE test_db;
+```
+
+**Посмотреть существующих пользователей**:
+
+```sql
+\du
+```
+
+Например:
+
+```text
+postgres
+filmsite_user
+shop_user
+test_user
+```
+
+**Удалить созданных пользователей**:
+
+```sql
+DROP ROLE filmsite_user;
+DROP ROLE shop_user;
+DROP ROLE test_user;
+```
+
+или
+
+```sql
+DROP USER filmsite_user;
+DROP USER shop_user;
+DROP USER test_user;
+```
+
+> `DROP ROLE` и `DROP USER` в PostgreSQL являются эквивалентными командами.
+
+*Теперь PostgreSQL находится практически в исходном состоянии и можно заново создавать пользователей, базы данных и выполнять миграции Django.*
 
 </details>
 
