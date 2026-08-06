@@ -91,8 +91,8 @@ GitHub OAuth работает на `localhost` — это удобно для р
 | Поле | Значение |
 |---|---|
 | Application name | filmsite-local |
-| Homepage URL | `http://localhost:8000` |
-| Authorization callback URL | `http://localhost:8000/auth/complete/github/` |
+| Homepage URL | `http://localhost:8000` или `http://127.0.0.1:8000/` |
+| Authorization callback URL | `http://localhost:8000/auth/complete/github/` или `http://127.0.0.1:8000/auth/complete/github/` |
 
 4. Нажми **«Register application»**
 5. На следующей странице скопируй **Client ID**
@@ -113,6 +113,12 @@ import os
 
 SOCIAL_AUTH_GITHUB_KEY = os.environ.get('GITHUB_KEY', '')
 SOCIAL_AUTH_GITHUB_SECRET = os.environ.get('GITHUB_SECRET', '')
+```
+
+Можно дополнительно запросить email:
+
+```python
+SOCIAL_AUTH_GITHUB_SCOPE = ['user:email']
 ```
 
 ### Куда перенаправлять после входа
@@ -292,6 +298,7 @@ AUTHENTICATION_BACKENDS = [
 # GitHub OAuth (работает на localhost)
 SOCIAL_AUTH_GITHUB_KEY = os.environ.get('GITHUB_KEY', '')
 SOCIAL_AUTH_GITHUB_SECRET = os.environ.get('GITHUB_SECRET', '')
+SOCIAL_AUTH_GITHUB_SCOPE = ['user:email']
 
 # ВКонтакте OAuth (требует реальный домен)
 SOCIAL_AUTH_VK_OAUTH2_KEY = os.environ.get('VK_KEY', '')
