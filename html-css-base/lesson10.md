@@ -1,65 +1,55 @@
-# Модуль 3. Урок 10. Введение в Flexbox
+# Урок 10. Введение во Flexbox
 
 ## Зачем нужен Flexbox
 
-**Flexbox** — это инструмент для расположения **элементов внутри одного контейнера** по одной оси (горизонтальной или вертикальной). Его сильные стороны:
+**Flexbox** — инструмент для расположения элементов внутри одного контейнера по одной оси (горизонтальной или вертикальной). Его сильные стороны: простая и надёжная центровка по горизонтали и вертикали; распределение свободного пространства между элементами (равномерное заполнение, «растяжение»); удобная организация строк/колонок с переносом (`wrap`) — карточки, кнопки, элементы меню; управление порядком отображения без изменения DOM (через `order`). Flexbox заменяет множество старых `float`/`inline-block`-приёмов, которые мы разбирали в предыдущих уроках, — код становится заметно чище.
 
-- **Простая и надёжная центровка** по горизонтали и вертикали.
-- **Распределение свободного пространства** между элементами (равномерное заполнение, «растяжение» элементов).
-- **Удобная организация строк/колонок** с переносом (`wrap`) — карточки, кнопки, элементы меню.
-- **Управление порядком** отображения без изменения DOM (через `order`).
-- Заменяет массу `float`/`inline-block`/`table`-хаков — код становится чище.
-
-**Когда использовать Flexbox чаще всего:**
-
-- горизонтальные/вертикальные навигации (menu),
-- хедеры с логотипом + кнопки,
-- группы кнопок и элементы управления,
-- карточки товаров (внутри карточки — картинка + текст + кнопка),
-- центрирование контента (например, модалки),
-- layout отдельных компонентов (не всей страницы — для этого чаще используют Grid).
-
-> Замечание: адаптивную вёрстку (медиа-запросы и брейкпойнты) мы пока **не углубляем** — упомянем её позже. Здесь — только то, что нужно понимать про Flexbox.
+Flexbox чаще всего применяют для: горизонтальных/вертикальных меню, шапок с логотипом и кнопками, групп элементов управления, карточек товаров (картинка + текст + кнопка внутри одной карточки), центрирования контента (например, модальных окон), и вёрстки отдельных компонентов страницы — для вёрстки же **всей страницы целиком** чаще применяют Grid, с которым мы познакомимся в следующем модуле.
 
 ---
 
 ## Основные концепции и терминология
 
-Ниже — ключевые понятия. Прочитайте, затем сразу пробуйте на примерах ниже.
+### Flex container и flex items
 
-### Flex container vs Flex items
+**Flex container** — элемент, к которому применили `display: flex` (или `inline-flex`). **Flex items** — непосредственные дочерние элементы этого контейнера, именно они выстраиваются по правилам Flexbox.
 
-- **Flex container** — элемент, к которому применили `display: flex` (или `inline-flex`). Это контейнер, внутри которого действует модель Flexbox.
-- **Flex items** — непосредственные дочерние элементы контейнера. Именно они выстраиваются по правилам Flexbox.
+```html
+<div class="container">
+  <div class="item">1</div>
+  <div class="item">2</div>
+  <div class="item">3</div>
+</div>
+```
 
 ```css
 .container {
   display: flex;
-} /* container */
-.container > .item {
-  /* это flex items */
+  border: 2px solid #333;
+  padding: 10px;
+  gap: 10px;
+}
+
+.item {
+  width: 80px;
+  height: 80px;
+  background: steelblue;
+  color: white;
+  text-align: center;
+  line-height: 80px;
 }
 ```
 
-### Main axis и Cross axis
+### Main axis и cross axis
 
-- **Main axis (основная ось)** — направление, в котором «стреляет» поток Flex-элементов. Задаётся с помощью `flex-direction`.
-
-  - `flex-direction: row` — main axis = горизонталь (слева направо по умолчанию).
-  - `flex-direction: column` — main axis = вертикаль (сверху вниз).
-
-- **Cross axis (поперечная ось)** — перпендикулярная main axis (если main — горизонталь, cross — вертикаль).
-
-**Визуализация (представьте контейнер):**
+**Main axis** (основная ось) — направление, вдоль которого располагаются flex-элементы; задаётся свойством `flex-direction`: `row` — main axis горизонтальна (слева направо, значение по умолчанию), `column` — main axis вертикальна (сверху вниз). **Cross axis** (поперечная ось) — всегда перпендикулярна main axis.
 
 ```
 flex-direction: row  (main → → →)
 [ item1 ][ item2 ][ item3 ]
    ↑
  cross
-```
 
-```
 flex-direction: column (main ↓ ↓ ↓)
 [ item1 ]
 [ item2 ]
@@ -68,42 +58,110 @@ flex-direction: column (main ↓ ↓ ↓)
  cross
 ```
 
-Важно: свойства `justify-content` управляют выравниванием по **main axis**, а `align-items` — по **cross axis**.
+Ключевое правило, о котором легко забыть: `justify-content` управляет выравниванием по **main axis**, а `align-items` — по **cross axis**. Если `flex-direction` меняется с `row` на `column`, смысл этих двух свойств визуально «меняется местами» — `justify-content` начинает управлять вертикалью, а `align-items` — горизонталью.
 
-### Shrink / Grow / Basis — смысл
+```html
+<div class="container">
+  <div class="item">1</div>
+  <div class="item">2</div>
+  <div class="item">3</div>
+</div>
+```
 
-Эти три понятия управляют размером flex-item'ов, когда есть или нет свободного пространства.
+`flex-direction: row`:
+```css
+.container {
+  display: flex;
 
-- `flex-grow` — как элемент **растёт**, занимая доступное свободное место. Значение 0 означает «не расти», 1 — «расти, деля пространство пропорционально».
-- `flex-shrink` — как элемент **сжимается**, когда места меньше, чем нужно.
-- `flex-basis` — базовый (начальный) размер элемента перед распределением оставшегося пространства. Может быть в `px`, `%` или `auto`.
+  flex-direction: row;
 
-Сокращённая запись: `flex: <grow> <shrink> <basis>;`
-Примеры:
+  gap: 10px;
+  border: 2px solid #333;
+  padding: 10px;
+}
 
-- `flex: 1;` эквивалентно `flex: 1 1 0%` (часто используется для равномерного заполнения).
-- `flex: 0 0 200px;` — фиксированная ширина 200px (без роста и сжатия).
+.item {
+  width: 80px;
+  height: 80px;
+  background: steelblue;
+  color: white;
+  text-align: center;
+  line-height: 80px;
+}
+```
+
+`flex-direction: column` :
+```css
+.container {
+  display: flex;
+
+  flex-direction: column;
+
+  gap: 10px;
+  border: 2px solid #333;
+  padding: 10px;
+}
+```
+
+### Grow, shrink, basis — как элементы делят пространство
+
+`flex-grow` — насколько элемент растёт, занимая свободное место (0 — не растёт, 1 и больше — растёт пропорционально своему значению относительно других элементов). 
+
+`flex-shrink` — насколько элемент сжимается, если места не хватает (по умолчанию 1 — может сжиматься, 0 — сохраняет свой размер даже в ущерб соседям). 
+
+`flex-basis` — начальный (базовый) размер элемента до применения роста/сжатия — может быть в `px`, `%` или `auto`.
+
+**Сокращённая запись**: `flex: <grow> <shrink> <basis>;` — например, `flex: 1;` эквивалентно `flex: 1 1 0%` (частый способ равномерного заполнения пространства), а `flex: 0 0 200px;` задаёт фиксированную ширину 200px без роста и сжатия.
+
+```html
+<div class="container">
+  <div class="item item-1">1</div>
+  <div class="item item-2">2</div>
+  <div class="item item-3">3</div>
+</div>
+```
+
+```css
+.container {
+  display: flex;
+  border: 2px solid #333;
+}
+
+.item {
+  padding: 20px;
+  color: white;
+  text-align: center;
+}
+
+.item-1 {
+  background: steelblue;
+  flex: 1;
+}
+
+.item-2 {
+  background: tomato;
+  flex: 2;
+}
+
+.item-3 {
+  background: seagreen;
+  flex: 1;
+}
+```
 
 ---
 
 ## Свойства контейнера
 
-### 1. Свойство `display: flex` / `display: inline-flex`
-
-Чтобы элементы внутри блока подчинялись правилам Flexbox, нужно сделать этот блок **flex-контейнером**.
-Для этого используется свойство:
+### `display: flex` / `display: inline-flex`
 
 ```css
-display: flex;
+.flex-container {
+  display: flex;
+}
 ```
 
-Теперь все **прямые потомки** этого контейнера становятся **flex-элементами** и начинают выстраиваться **в одну строку** (по умолчанию).
-
-**Важно:**
-
-Если задать `display: inline-flex`, контейнер сам будет вести себя как **строчный элемент**, но при этом сохранять внутреннее поведение Flexbox.
-
-**Пример:**
+Все прямые потомки этого контейнера становятся flex-элементами и по умолчанию выстраиваются в одну строку. `display: inline-flex` даёт то же поведение внутри, но сам контейнер при этом ведёт себя как строчный элемент относительно окружающей разметки.
 
 ```html
 <div class="flex-container">
@@ -116,194 +174,260 @@ display: flex;
 ```css
 .flex-container {
   display: flex;
-  border: 2px solid #4b9;
+  border: 2px solid #333;
+  padding: 10px;
+  gap: 10px;
 }
 
 .item {
-  background: #9cf;
-  padding: 20px;
-  margin: 5px;
+  width: 80px;
+  height: 80px;
+  background: steelblue;
+  color: white;
+  text-align: center;
+  line-height: 80px;
 }
 ```
 
-> Элементы выстроятся **в одну строку**, равномерно по горизонтали.
+### `flex-direction`
 
----
+Задаёт направление main axis: `row` (по умолчанию, слева направо), `row-reverse` (справа налево, порядок элементов визуально обратный), `column` (сверху вниз), `column-reverse` (снизу вверх).
 
-### 2. Направление осей: `flex-direction`
-
-Это одно из ключевых свойств Flexbox.
-Оно задает **направление основной оси (main axis)**, вдоль которой располагаются элементы.
-
-```css
-flex-direction: row | row-reverse | column | column-reverse;
+```html
+<div class="flex-container">
+  <div class="item">1</div>
+  <div class="item">2</div>
+  <div class="item">3</div>
+</div>
 ```
-
-| Значение         | Направление   | Комментарий                                |
-| ---------------- | ------------- | ------------------------------------------ |
-| `row`            | слева направо | значение по умолчанию                      |
-| `row-reverse`    | справа налево | элементы переставляются в обратном порядке |
-| `column`         | сверху вниз   | ось становится вертикальной                |
-| `column-reverse` | снизу вверх   | элементы располагаются снизу вверх         |
-
-**Пример:**
 
 ```css
 .flex-container {
   display: flex;
+
+  flex-direction: row;
+  flex-direction: row-reverse;
   flex-direction: column;
-}
-```
+  flex-direction: column-reverse;
 
-**Пояснение:**
-
-Если `flex-direction: row` — основная ось горизонтальная.
-Если `column` — вертикальная.
-Поперечная ось (cross axis) всегда перпендикулярна основной.
-
----
-
-### 3. Перенос строк: `flex-wrap`
-
-По умолчанию все flex-элементы стараются **поместиться в одну строку**, даже если не хватает места.
-Чтобы разрешить перенос — используем `flex-wrap`.
-
-```css
-flex-wrap: nowrap | wrap | wrap-reverse;
-```
-
-| Значение       | Поведение                           |
-| -------------- | ----------------------------------- |
-| `nowrap`       | всё в одной строке (по умолчанию)   |
-| `wrap`         | перенос на следующую строку (вниз)  |
-| `wrap-reverse` | перенос на следующую строку (вверх) |
-
-**Пример:**
-
-```css
-.flex-container {
-  display: flex;
-  flex-wrap: wrap;
   gap: 10px;
+  border: 2px solid #333;
+  padding: 10px;
 }
 ```
 
-**На практике:**
-Когда у вас карточки товаров, блоки с фото или кнопки, — `flex-wrap: wrap` позволит красиво переносить их, не ломая верстку.
+### `flex-wrap`
 
----
+По умолчанию все flex-элементы стараются поместиться в одну строку, даже если места не хватает. `flex-wrap: wrap` разрешает перенос на следующую строку; `nowrap` (по умолчанию) запрещает перенос; `wrap-reverse` переносит в обратном порядке (вверх).
 
-### 4. Выравнивание по основной оси: `justify-content`
-
-Управляет **распределением свободного пространства вдоль основной оси (main axis)**.
-
-```css
-justify-content: flex-start | flex-end | center | space-between | space-around |
-  space-evenly;
+```html
+<div class="flex-container">
+  <div class="item">1</div>
+  <div class="item">2</div>
+  <div class="item">3</div>
+  <div class="item">4</div>
+  <div class="item">5</div>
+  <div class="item">6</div>
+</div>
 ```
-
-| Значение        | Что делает                                       |
-| --------------- | ------------------------------------------------ |
-| `flex-start`    | прижимает элементы к началу оси                  |
-| `flex-end`      | прижимает к концу                                |
-| `center`        | центрирует                                       |
-| `space-between` | равные промежутки между элементами, края прижаты |
-| `space-around`  | равные отступы вокруг каждого элемента           |
-| `space-evenly`  | равные промежутки и по краям, и между элементами |
-
-**Пример:**
 
 ```css
 .flex-container {
   display: flex;
-  justify-content: space-between;
+
+  flex-wrap: nowrap;
+  flex-wrap: wrap;
+
+  gap: 10px;
+  width: 320px;
+  border: 2px solid #333;
+  padding: 10px;
+}
+
+.item {
+  width: 90px;
+  height: 70px;
+  background: steelblue;
+  color: white;
+  text-align: center;
+  line-height: 70px;
 }
 ```
 
----
+Когда у вас карточки товаров или набор кнопок, `flex-wrap: wrap` позволяет им красиво переноситься на новую строку, а не вылезать за пределы контейнера или сжиматься до нечитаемого состояния.
 
-### 5. Выравнивание по поперечной оси: `align-items`
+### `justify-content` — выравнивание по main axis
 
-Управляет **расположением элементов по вертикали (если `flex-direction: row`)**,
-то есть — вдоль **cross axis**.
+```css
+justify-content: flex-start | flex-end | center | space-between | space-around | space-evenly;
+```
+
+`flex-start`/`flex-end` — прижимает к началу/концу оси; 
+
+`center` — центрирует; 
+
+`space-between` — равные промежутки между элементами, крайние элементы прижаты к краям; 
+
+`space-around` — равные отступы вокруг каждого элемента; 
+
+`space-evenly` — равные промежутки везде, включая края.
+
+```html
+<div class="flex-container">
+  <div class="item">1</div>
+  <div class="item">2</div>
+  <div class="item">3</div>
+</div>
+```
+
+```css
+.flex-container {
+  display: flex;
+
+  justify-content: flex-start;
+  justify-content: flex-end;
+  justify-content: center;
+  justify-content: space-between;
+  justify-content: space-around;
+  justify-content: space-evenly;
+
+  border: 2px solid #333;
+  padding: 20px;
+  height: 120px;
+}
+
+.item {
+  width: 70px;
+  height: 70px;
+  background: steelblue;
+  color: white;
+  text-align: center;
+  line-height: 70px;
+}
+```
+
+### `align-items` — выравнивание по cross axis
 
 ```css
 align-items: stretch | flex-start | flex-end | center | baseline;
 ```
 
-| Значение     | Поведение                                                |
-| ------------ | -------------------------------------------------------- |
-| `stretch`    | растягивает элементы по высоте контейнера (по умолчанию) |
-| `flex-start` | выравнивает к верху                                      |
-| `flex-end`   | выравнивает к низу                                       |
-| `center`     | центрирует по вертикали                                  |
-| `baseline`   | выравнивает по линии текста                              |
+`stretch` (по умолчанию) — элементы растягиваются на всю высоту контейнера по cross axis; 
 
-**Пример:**
+`flex-start`/`flex-end` — прижимает к началу/концу поперечной оси; `center` — центрирует; 
+
+`baseline` — выравнивает элементы по линии текста внутри них.
+
+```html
+<div class="flex-container">
+  <div class="item">1</div>
+  <div class="item">2</div>
+  <div class="item">3</div>
+</div>
+```
 
 ```css
 .flex-container {
   display: flex;
+
+  align-items: stretch;
+  align-items: flex-start;
+  align-items: flex-end;
   align-items: center;
+  align-items: baseline;
+
+  height: 250px;
+  border: 2px solid #333;
+  gap: 10px;
+}
+
+.item {
+  width: 70px;
+  height: 70px;
+  background: steelblue;
+  color: white;
+  text-align: center;
+  line-height: 70px;
 }
 ```
 
----
+### `align-content` — выравнивание нескольких строк
 
-### 6. Выравнивание нескольких строк: `align-content`
+Работает только при наличии переноса (`flex-wrap: wrap`) и нескольких строк flex-элементов — управляет распределением этих строк вдоль cross axis, точно так же, как `justify-content` распределяет отдельные элементы вдоль main axis. Если все элементы помещаются в одну строку, `align-content` не оказывает видимого эффекта.
 
-Это свойство **работает только если есть перенос строк (`flex-wrap: wrap`)**.
-Оно управляет распределением **групп строк** вдоль поперечной оси.
-
-```css
-align-content: flex-start | flex-end | center | space-between | space-around |
-  stretch;
+```html
+<div class="flex-container">
+  <div class="item">1</div>
+  <div class="item">2</div>
+  <div class="item">3</div>
+  <div class="item">4</div>
+  <div class="item">5</div>
+  <div class="item">6</div>
+</div>
 ```
-
-**Пример:**
 
 ```css
 .flex-container {
   display: flex;
   flex-wrap: wrap;
+
+  align-content: stretch;
+  align-content: flex-start;
+  align-content: flex-end;
+  align-content: center;
+  align-content: baseline;
   align-content: space-between;
-  height: 400px;
+
+  width: 280px;
+  height: 350px;
+
+  border: 2px solid #333;
+  gap: 10px;
+}
+
+.item {
+  width: 70px;
+  height: 70px;
+  background: steelblue;
+  color: white;
+  text-align: center;
+  line-height: 70px;
 }
 ```
 
-**Примечание:**
-Если элементов хватает на одну строку, `align-content` не влияет на внешний вид.
+### `gap` — межэлементные отступы
 
----
+Современная и более удобная альтернатива расстановке `margin` вручную у каждого элемента — `gap` задаёт равномерный промежуток между элементами, не требуя компенсировать лишний отступ у крайних элементов ряда, как это часто приходится делать с `margin`.
 
-### 7. Межэлементные отступы: `gap`
-
-Современная альтернатива `margin` между flex-элементами.
-Проще, аккуратнее и безопаснее при вычислениях ширины.
-
-```css
-gap: 20px;
-/* или отдельно */
-column-gap: 20px;
-row-gap: 10px;
+```html
+<div class="flex-container">
+  <div class="item">1</div>
+  <div class="item">2</div>
+  <div class="item">3</div>
+</div>
 ```
-
-**Пример:**
 
 ```css
 .flex-container {
   display: flex;
-  flex-wrap: wrap;
-  gap: 15px;
+  gap: 20px;
+  border: 2px solid #333;
+  padding: 10px;
+}
+
+.item {
+  width: 80px;
+  height: 80px;
+  background: steelblue;
+  color: white;
+  text-align: center;
+  line-height: 80px;
 }
 ```
 
----
+### Центрирование блока по обеим осям — классический пример
 
-### Пример: центрирование блока по обеим осям
-
-Одна из самых популярных задач — **отцентрировать элемент по горизонтали и вертикали**.
-С Flexbox это делается одной строкой:
+Одна из самых частых задач вёрстки — центрирование блока — решается Flexbox буквально в две строки, без единого «хака» вроде `margin: 0 auto` вместе с абсолютным позиционированием, которые нам приходилось применять раньше.
 
 ```html
 <div class="wrapper">
@@ -317,490 +441,610 @@ row-gap: 10px;
   justify-content: center; /* по горизонтали */
   align-items: center; /* по вертикали */
   height: 300px;
-  border: 2px dashed #aaa;
-}
-
-.box {
-  background: #9cf;
-  padding: 20px 40px;
-  border-radius: 8px;
 }
 ```
 
-**Результат:**
-Блок идеально выровнен по центру контейнера — независимо от размеров экрана или текста.
-
 ---
 
-### Что запомнить:
+## Свойства flex-элементов
 
-- `display: flex;` делает контейнер гибким.
-- `flex-direction` задает направление главной оси.
-- `flex-wrap` разрешает перенос элементов.
-- `justify-content` — выравнивает по основной оси.
-- `align-items` — по поперечной оси.
-- `align-content` — управляет расстоянием между строками.
-- `gap` — задает аккуратные промежутки между элементами.
+### `flex-grow`, `flex-shrink`, `flex-basis` по отдельности
 
----
+`flex-grow`:
 
-## Свойства элементов (flex items)
-
-Этот раздел — практическое руководство по свойствам **flex-элементов**: как они растут, сжимаются, занимают начальный размер, меняют порядок и переопределяют выравнивание.
-
-### Что такое flex-item (напоминание)
-
-Flex-item — это **прямой дочерний элемент** контейнера с `display: flex` (или `inline-flex`). На него действуют правила flex-модели: он может расти/сжиматься/иметь базовый размер и т. д.
-
----
-
-### `flex-grow` — как элемент растёт
-
-`flex-grow` определяет, **насколько элемент должен увеличиться**, если в контейнере есть свободное пространство.
-
-- Значение `0` — элемент **не будет** расти.
-- Значение `1` или больше — элемент может взять долю свободного пространства. Если несколько элементов имеют `flex-grow`, пространство распределяется **пропорционально** их значениям.
-
-**Пример**
+```html
+<div class="container">
+  <div class="item">1</div>
+  <div class="item item-big">2</div>
+  <div class="item">3</div>
+</div>
+```
 
 ```css
+.container {
+  display: flex;
+  border: 2px solid #333;
+}
+
 .item {
   flex-grow: 1;
-} /* все элементы с flex-grow:1 поделят доступное место поровну */
-.item--big {
-  flex-grow: 2;
-} /* этот элемент получит в 2 раза больше пространства, чем .item */
-```
 
----
-
-### `flex-shrink` — как элемент сжимается
-
-`flex-shrink` управляет **возможностью элемента сжиматься**, когда места меньше, чем нужно.
-
-- Значение `1` (по умолчанию) — элемент может уменьшаться.
-- Значение `0` — элемент **не будет** сжиматься; другие элементы прижмутся или появится прокрутка.
-
-**Пример**
-
-```css
-.item {
-  flex-shrink: 1;
+  padding: 20px;
+  background: steelblue;
+  color: white;
+  text-align: center;
 }
-.item--fixed {
-  flex-shrink: 0;
-} /* сохранит свой базовый размер при недостатке места */
+
+.item-big {
+  flex-grow: 2;
+  background: tomato;
+}
 ```
+
+Получится примерно так:
+
+```
+|------1------|-----------2-----------|------3------|
+```
+
+Сразу видно, что второй элемент получил в два раза больше свободного пространства.
 
 ---
 
-### `flex-basis` — начальный размер
+`flex-shrink`:
 
-`flex-basis` задаёт **начальный (базовый) размер** элемента перед применением `flex-grow`/`flex-shrink`. Может быть в `px`, `%`, `auto`.
+Теперь можно уменьшать ширину контейнера и наблюдать, что второй элемент практически не изменяет свой размер.
 
-- `flex-basis: auto;` — базовый размер равен содержимому или заданной ширине/высоте.
-- `flex-basis: 200px;` — начнёт с 200px, затем будет расти/сжиматься.
-
-**Пример**
+```html
+<div class="container">
+  <div class="item">1</div>
+  <div class="item item-fixed">2</div>
+  <div class="item">3</div>
+</div>
+```
 
 ```css
+.container {
+  display: flex;
+  width: 250px;
+  border: 2px solid #333;
+}
+
 .item {
-  flex-basis: 150px;
-} /* начальная ширина 150px */
+  width: 120px;
+  padding: 20px;
+  background: steelblue;
+  color: white;
+  text-align: center;
+}
+
+.item-fixed {
+  flex-shrink: 0;
+  background: tomato;
+}
 ```
 
 ---
 
-### Сокращённая запись: `flex: <grow> <shrink> <basis>`
+`flex-basis`:
 
-Удобный формат для одновременной настройки:
-
-- `flex: 1 1 0;` — расти и сжиматься, базовый размер 0.
-- `flex: 0 0 200px;` — фиксированный размер 200px (не растёт, не сжимается).
-- `flex: 1;` — сокращённая запись, часто воспринимаемая как `1 1 0%` (в браузерах обычно работает как `1 1 0%`).
-
-**Примеры**
+```html
+<div class="container">
+  <div class="item">1</div>
+  <div class="item item-big">2</div>
+  <div class="item">3</div>
+</div>
+```
 
 ```css
-/* Три элемента: центральный растягивается, боковые фиксированы */
-.left {
-  flex: 0 0 120px;
-} /* фиксированная ширина */
-.center {
-  flex: 1;
-} /* займет всё свободное место */
+.container {
+  display: flex;
+  border: 2px solid #333;
+  gap: 10px;
+}
+
+.item {
+  flex-basis: 80px;
+
+  background: steelblue;
+  color: white;
+  padding: 20px;
+  text-align: center;
+}
+
+.item-big {
+  flex-basis: 180px;
+  background: tomato;
+}
+```
+
+Сразу видно, что второй элемент получает больший стартовый размер.
+
+### Сокращённая запись `flex`
+
+```html
+<div class="layout">
+  <div class="left">Меню</div>
+  <div class="center">Основной контент</div>
+  <div class="right">Профиль</div>
+</div>
+```
+
+```css
+.layout {
+  display: flex;
+  border: 2px solid #333;
+}
+
+.left,
 .right {
   flex: 0 0 120px;
-} /* фикс. */
+
+  background: steelblue;
+  color: white;
+  padding: 20px;
+  text-align: center;
+}
+
+.center {
+  flex: 1;
+
+  background: tomato;
+  color: white;
+  padding: 20px;
+  text-align: center;
+}
 ```
 
----
+Это классический паттерн «фиксированные боковые колонки + гибкий центр» — очень частая раскладка в реальных интерфейсах.
 
-### `order` — менять визуальный порядок
+### `order` — визуальный порядок без изменения HTML
 
-`order` меняет **порядок отображения** элемента в flex-контейнере без изменения DOM.
-
-- Элемент с меньшим `order` отображается раньше.
-- По умолчанию `order: 0`.
-
-**Пример**
+```html
+<div class="container">
+  <div class="item item-1">Первый</div>
+  <div class="item item-2">Второй</div>
+  <div class="item item-3">Третий</div>
+</div>
+```
 
 ```css
-.item1 {
+.container {
+  display: flex;
+  gap: 10px;
+}
+
+.item {
+  width: 90px;
+  padding: 20px;
+  background: steelblue;
+  color: white;
+  text-align: center;
+}
+
+.item-1 {
   order: 2;
 }
-.item2 {
+
+.item-2 {
   order: 1;
-} /* отобразится раньше чем .item1, даже если в HTML .item1 идёт первым */
+}
+
+.item-3 {
+  order: 3;
+}
 ```
 
-**Важно:** не используйте `order` для логики (фокус, таб-порядок, семантика). Это только визуальная перестановка.
+Элемент с меньшим значением `order` отображается раньше; значение по умолчанию — `0`. Важная оговорка: `order` меняет только **визуальный** порядок — порядок фокуса при навигации с клавиатуры (`Tab`) и порядок чтения для экранных читалок при этом определяется исходным порядком в HTML, а не значением `order`. Не полагайтесь на `order` там, где важна логика или доступность, — только для чисто визуальной перестановки.
 
----
+### `align-self` — переопределение выравнивания для одного элемента
 
-### `align-self` — переопределение выравнивания
-
-`align-self` позволяет переопределить `align-items` контейнера для **конкретного** элемента.
-
-Значения: `auto | stretch | flex-start | flex-end | center | baseline`
-
-**Пример**
+```html
+<div class="container">
+  <div class="item">1</div>
+  <div class="item item-special">2</div>
+  <div class="item">3</div>
+</div>
+```
 
 ```css
 .container {
   display: flex;
   align-items: center;
+
+  height: 220px;
+  gap: 10px;
+
+  border: 2px solid #333;
 }
+
+.item {
+  width: 80px;
+  height: 80px;
+
+  background: steelblue;
+  color: white;
+
+  text-align: center;
+  line-height: 80px;
+}
+
 .item-special {
   align-self: flex-start;
-} /* этот элемент будет прижат к верху, игнорируя align-items */
+  background: tomato;
+}
 ```
 
 ---
 
-### Практический пример: Sidebar + Content
-
-Задача: слева — фиксированная колонка (sidebar, 220px), справа — основной контент, который заполняет оставшееся пространство.
-
-#### HTML
+## Практический пример: сайдбар + основной контент
 
 ```html
 <div class="layout">
-  <aside class="sidebar">Меню<br />Пункт 1<br />Пункт 2</aside>
+  <aside class="sidebar">
+    Меню<br>
+    Главная<br>
+    Каталог<br>
+    Контакты
+  </aside>
+
   <main class="content">
     <h2>Основной контент</h2>
-    <p>Здесь растягивающийся контент.</p>
+
+    <p>
+      Здесь располагается содержимое страницы.
+      Этот блок занимает всё свободное пространство.
+    </p>
   </main>
 </div>
 ```
-
-#### CSS
 
 ```css
 .layout {
   display: flex;
   gap: 16px;
-  height: 360px; /* чтобы визуально было видно растягивание */
-  border: 1px solid #ddd;
-  padding: 12px;
-  background: #fff;
+
+  border: 2px solid #333;
+  padding: 15px;
 }
 
-/* Sidebar: фиксированная ширина, не сжимается */
 .sidebar {
-  flex: 0 0 220px; /* flex-grow:0, flex-shrink:0, flex-basis:220px */
-  background: #f0f4f8;
-  padding: 12px;
-  border-radius: 6px;
+  flex: 0 0 220px;
+
+  background: #dceeff;
+  padding: 15px;
 }
 
-/* Content: растягивается, занимает всё оставшееся пространство */
 .content {
-  flex: 1 1 0; /* или просто flex: 1; */
-  background: #fffefe;
-  padding: 12px;
-  border-radius: 6px;
-  overflow: auto;
+  flex: 1;
+
+  background: #f7f7f7;
+  padding: 15px;
 }
 ```
 
-**Что здесь важно:**
-
-- `.sidebar` не растёт и не сжимается — всегда 220px.
-- `.content` заполняет всё свободное место, т.е. эластичен.
+`.sidebar` всегда остаётся 220px, а `.content` эластично заполняет всё, что осталось от ширины родителя — классический макет «фиксированная колонка + гибкий контент».
 
 ---
 
 ## Практические паттерны Flexbox
 
-Разберём самые частые и полезные **паттерны** (готовые шаблоны решений), которые вы будете применять в реальных макетах.
+### **Горизонтальная навигация с равномерным распределением**
 
-### Подготовим базовую структуру
+`justify-content: space-between` растягивает первый пункт к началу, последний — к концу, а промежутки между остальными делает равными.
 
 ```html
-<!DOCTYPE html>
-<html lang="ru">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Flexbox Практика</title>
-    <style>
-      body {
-        font-family: sans-serif;
-        margin: 0;
-        padding: 20px;
-        background: #f5f5f5;
-      }
-      .container {
-        display: flex;
-        background: #fff;
-        padding: 10px;
-        border-radius: 10px;
-        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-        margin-bottom: 40px;
-      }
-      .item {
-        background: #4a90e2;
-        color: white;
-        padding: 15px;
-        border-radius: 8px;
-        text-align: center;
-      }
-    </style>
-  </head>
-  <body>
-    <h1>Практические паттерны Flexbox</h1>
+<nav class="menu">
+  <a href="#">Главная</a>
+  <a href="#">Каталог</a>
+  <a href="#">Блог</a>
+  <a href="#">Контакты</a>
+</nav>
+```
 
-    <!-- Примеры будут вставляться сюда -->
-  </body>
-</html>
+```css
+.menu {
+  display: flex;
+  justify-content: space-between;
+
+  padding: 15px;
+  background: #333;
+}
+
+.menu a {
+  color: white;
+  text-decoration: none;
+}
 ```
 
 ---
 
-### 1. Горизонтальная навигация с равномерным распределением
+### **Центрирование блока внутри контейнера**
 
-Одна из самых частых задач — **создать меню**, где пункты равномерно распределяются по горизонтали.
-Для этого идеально подходит свойство `justify-content: space-between;`.
+`justify-content: center` + `align-items: center`, разобрано выше.
+
+
+Используйте пример из разделов `justify-content` и `align-items`, рассмотренный выше.
+
+---
+
+### **Сетка карточек с переносом**
+
+`flex-wrap: wrap` вместе с `flex: 1 1 200px` на каждой карточке: карточки растут и сжимаются, но не уже 200px, и автоматически переносятся на новую строку, если не помещаются.
 
 ```html
-<h2>1. Горизонтальная навигация</h2>
-<div class="container" style="justify-content: space-between;">
-  <div class="item">Главная</div>
-  <div class="item">О нас</div>
-  <div class="item">Услуги</div>
-  <div class="item">Контакты</div>
+<div class="cards">
+  <div class="card">Карточка 1</div>
+  <div class="card">Карточка 2</div>
+  <div class="card">Карточка 3</div>
+  <div class="card">Карточка 4</div>
 </div>
 ```
 
-**Как работает:**
+```css
+.cards {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 15px;
+}
 
-Flexbox растягивает контейнер на всю ширину, а элементы распределяет так, чтобы первый был прижат к началу, последний — к концу, а между остальными — равные промежутки.
+.card {
+  flex: 1 1 200px;
 
----
-
-### 2. Центрирование блока внутри контейнера
-
-Классическая задача — **отцентрировать элемент по горизонтали и вертикали**.
-С Flexbox это делается в одну строку:
-
-```html
-<h2>2. Центрирование блока</h2>
-<div
-  class="container"
-  style="justify-content: center; align-items: center; height: 200px;"
->
-  <div class="item" style="width: 150px; height: 100px;">Центр</div>
-</div>
+  padding: 30px;
+  background: steelblue;
+  color: white;
+  text-align: center;
+}
 ```
 
-**Комментарий:**
-
-`justify-content` отвечает за **main axis** (горизонталь при `flex-direction: row`),
-а `align-items` — за **cross axis** (вертикаль).
-Комбинируя их, мы можем идеально выровнять любой элемент.
-
 ---
 
-### 3. Сетка карточек с переносом и равномерным растяжением
+### **Sticky footer (прижатый футер)**
 
-Здесь Flexbox помогает создавать адаптивные **ряды карточек**, которые автоматически переносятся на следующую строку, если не помещаются.
-
-```html
-<h2>3. Сетка карточек</h2>
-<div class="container" style="flex-wrap: wrap; gap: 10px;">
-  <div class="item" style="flex: 1 1 200px;">Карточка 1</div>
-  <div class="item" style="flex: 1 1 200px;">Карточка 2</div>
-  <div class="item" style="flex: 1 1 200px;">Карточка 3</div>
-  <div class="item" style="flex: 1 1 200px;">Карточка 4</div>
-  <div class="item" style="flex: 1 1 200px;">Карточка 5</div>
-</div>
-```
-
-**Что здесь важно:**
-
-- `flex-wrap: wrap` — разрешает перенос элементов на новую строку.
-- `flex: 1 1 200px` — каждый элемент может **расти и сжиматься**, но базовая ширина — 200px.
-- `gap` — аккуратные равномерные отступы между карточками.
-
----
-
-### 4. Sticky Footer (прижатый футер)
-
-Одна из классических задач верстки — **прижать футер к низу экрана**, если контента мало.
-Решается легко с помощью Flexbox и `margin-top: auto`.
+Классическая задача, которую Flexbox решает элегантно:
 
 ```html
-<h2>4. Sticky Footer</h2>
+<div class="page">
+  <header>Шапка сайта</header>
 
-<div
-  style="display: flex; flex-direction: column; min-height: 100vh; background: #fff; border-radius: 10px;"
->
-  <header
-    style="background: #4a90e2; color: white; padding: 20px; border-radius: 10px 10px 0 0;"
-  >
-    Шапка
-  </header>
+  <main>
+    Основной контент страницы
+  </main>
 
-  <main style="flex: 1; padding: 20px;">Контент страницы</main>
-
-  <footer
-    style="background: #333; color: white; padding: 15px; margin-top: auto; border-radius: 0 0 10px 10px;"
-  >
-    Футер прижат к низу
+  <footer>
+    Подвал сайта
   </footer>
 </div>
 ```
 
-**Как это работает:**
+```css
+.page {
+  display: flex;
+  flex-direction: column;
 
-- Контейнер (`flex-direction: column`) занимает всю высоту окна.
-- Основной контент (`main`) растягивается на всё свободное место.
-- Футер с `margin-top: auto` уходит вниз, если место остаётся.
+  min-height: 100vh;
+}
 
----
+header,
+main,
+footer {
+  padding: 20px;
+}
 
-### 5. Карточка товара (фиксированная картинка + текст)
+header {
+  background: steelblue;
+  color: white;
+}
 
-Очень частый паттерн для карточек товаров, отзывов, профилей и т.п.:
-слева — фиксированное изображение, справа — растягивающийся текст.
+main {
+  flex: 1;
+  background: #f2f2f2;
+}
+
+footer {
+  margin-top: auto;
+
+  background: #333;
+  color: white;
+}
+```
+
+Контейнер `.page` со всей высотой окна (`min-height: 100vh`) и `flex-direction: column` — `main` растягивается через `flex: 1`, забирая всё оставшееся пространство, а футер с `margin-top: auto` в результате всегда оказывается прижат к низу, даже если контента на странице очень мало.
+
+### **Карточка товара (картинка + текст)**
+
+`flex: 0 0 120px` у изображения (фиксированная ширина) и `flex: 1` у текстового блока (растягивается на оставшееся место) — та же логика «фиксированная часть + гибкая часть», что и в примере с сайдбаром.
 
 ```html
-<h2>5. Карточка товара</h2>
-<div class="container" style="align-items: flex-start;">
-  <div class="item" style="flex: 0 0 120px; height: 120px;">🖼️ Фото</div>
-  <div class="item" style="flex: 1; text-align: left;">
+<div class="product">
+  <img
+    src="https://placehold.co/120x120"
+    alt="Товар"
+  >
+
+  <div class="info">
     <h3>Название товара</h3>
+
     <p>
-      Описание товара. Этот блок занимает всё оставшееся место и подстраивается
-      под ширину контейнера.
+      Краткое описание товара.
+      Этот блок занимает всё оставшееся пространство.
     </p>
   </div>
 </div>
 ```
 
-**Разбор:**
+```css
+.product {
+  display: flex;
+  gap: 20px;
 
-- `flex: 0 0 120px` — левая часть фиксирована (120px).
-- `flex: 1` — правая часть растягивается, заполняя оставшееся пространство.
-- Можно легко добавлять переносы, кнопки и выравнивание — всё будет гибко адаптироваться.
+  max-width: 600px;
 
----
+  border: 2px solid #333;
+  padding: 15px;
+}
 
-### Резюме
+.product img {
+  flex: 0 0 120px;
 
-Flexbox позволяет быстро и просто решать десятки типовых задач:
+  width: 120px;
+  height: 120px;
+}
 
-| Задача                                 | Решение                                       |
-| -------------------------------------- | --------------------------------------------- |
-| Выравнивание по центру                 | `justify-content` + `align-items`             |
-| Перенос карточек                       | `flex-wrap: wrap`                             |
-| Прижатый футер                         | `flex-direction: column` + `margin-top: auto` |
-| Растягивание блока                     | `flex: 1`                                     |
-| Фиксированная колонка + гибкий контент | `flex: 0 0 Xpx` + `flex: 1`                   |
-
-Эти приёмы составляют основу практического владения Flexbox.
-Когда вы научитесь свободно применять их, любая верстка станет проще и понятнее.
-
----
-
-## Самостоятельная практика
-
-## Практика 1. Header (шапка сайта)
-
-### Цель
-
-Научиться выстраивать элементы в один ряд и выравнивать их с помощью Flexbox.
-
-### Задачи
-
-1. Создай блок `<header>` и задай ему фоновый цвет или полупрозрачный фон.
-2. Внутри сделай три элемента:
-
-   - логотип (например, текстом “MyLogo”);
-   - название сайта;
-   - навигацию (блок `<nav>` со ссылками — 3–4 элемента).
-
-3. Выстрой элементы в шапке в один ряд, чтобы логотип был слева, название по центру, а навигация — справа.
-4. Сделай, чтобы все элементы были вертикально выровнены по центру.
-5. Для навигации также задай горизонтальное расположение ссылок с небольшими промежутками между ними.
+.info {
+  flex: 1;
+}
+```
 
 ---
 
-## Практика 2. Main (контент сайта)
+### Резюме паттернов
 
-### Цель
-
-Создать карточки с контентом и применить вертикальную компоновку внутри карточки.
-
-### Задачи
-
-1. Создай блок `<main>` и размести внутри него четыре карточки (`div` с классом `card`).
-2. В каждой карточке должны быть:
-
-   - блок-обложка, внутри которого находится изображение;
-   - заголовок третьего уровня (название);
-   - абзац с описанием.
-
-3. Сделай так, чтобы карточки располагались в несколько рядов при нехватке места, с отступами между ними.
-4. Каждая карточка должна быть белого цвета, иметь скруглённые углы и лёгкую тень.
-5. Содержимое карточки должно располагаться вертикально: сверху — картинка, затем заголовок и текст.
-6. Для изображений задай одинаковую высоту и ширину на всю карточку, при этом изображение должно обрезаться по краям, не растягиваясь.
+| Задача | Решение |
+|---|---|
+| Выравнивание по центру | `justify-content` + `align-items` |
+| Перенос карточек | `flex-wrap: wrap` |
+| Прижатый футер | `flex-direction: column` + `margin-top: auto` на футере |
+| Растягивание блока | `flex: 1` |
+| Фиксированная колонка + гибкий контент | `flex: 0 0 Xpx` + `flex: 1` |
 
 ---
 
-## Практика 3. Header + Main + Footer (цельная страница)
+## Вопросы для проверки
 
-### Цель
-
-Объединить все части страницы и прижать футер к низу окна браузера.
-
-### Задачи
-
-1. Объедини созданные ранее блоки: `header` и `main`.
-2. Добавь блок `footer` внизу страницы. В нём размести контактную информацию и копирайт.
-3. Сделай так, чтобы футер всегда находился внизу экрана, даже если контента немного.
-4. Добавь фоновое изображение для всей страницы, чтобы сайт выглядел более реалистично.
-5. Проверь расположение всех элементов:
-
-   - шапка — наверху;
-   - карточки — по центру страницы, с равномерными отступами;
-   - футер — прижат к низу.
+1. В чём разница между flex-контейнером и flex-элементом?
+2. Что определяет `flex-direction`, и как это влияет на смысл `justify-content` и `align-items`?
+3. Чем `flex-grow: 0` отличается от `flex-grow: 1` у элемента?
+4. Что делает `flex-wrap: wrap`, и что произойдёт с элементами без этого свойства, если места в контейнере не хватает?
+5. Приведи пример сокращённой записи `flex`, которая задаёт элементу фиксированную ширину 150px без возможности расти или сжиматься.
+6. Что делает свойство `order`, и какое важное ограничение стоит о нём помнить?
+7. Как с помощью Flexbox реализовать классический sticky footer — футер, прижатый к низу экрана, даже если контента на странице мало?
+8. В чём разница между `align-items` и `align-content`, и при каком условии `align-content` вообще оказывает видимый эффект?
 
 ---
 
-## Рекомендации к выполнению
+## Практические задания
 
-- Тема страницы **свободная** — выбери её сам: это может быть сайт о путешествиях, фильмах, книгах, еде, животных или хобби.
-- Для фона страницы используй красивую фотографию, а для карточек — картинки по теме сайта.
-- Картинки в карточках должны быть аккуратно обрезаны по размеру блока с помощью свойств, регулирующих подгонку изображения.
-- Обрати внимание, чтобы шрифты, цвета и отступы выглядели гармонично.
+### Задание 1. Шапка сайта с логотипом, названием и навигацией
+
+Создай `<header>` с тремя элементами: логотип слева, название сайта по центру, навигация (3–4 ссылки) справа. Все элементы шапки должны быть выровнены по вертикали по центру. Ссылки внутри навигации должны идти в один ряд с небольшими промежутками между ними.
+
+<details>
+<summary><b>Готовая html разметка</b></summary>
+
+```html
+<header class="site-header">
+  <div class="logo">MyLogo</div>
+  <div class="site-title">Мой сайт</div>
+  <nav class="site-nav">
+    <a href="#">Главная</a>
+    <a href="#">О нас</a>
+    <a href="#">Услуги</a>
+    <a href="#">Контакты</a>
+  </nav>
+</header>
+```
+
+</details>
 
 ---
 
-### Пример готовой верстки
+### Задание 2. Карточки с переносом и вертикальной компоновкой
 
-<img src='img/result-practice-flex.png' width=600px>
+Создай блок `<main>` с четырьмя карточками (`div.card`). В каждой карточке — картинка (с одинаковыми пропорциями, обрезанная по краям без искажений), заголовок `<h3>` и абзац с описанием. Карточки должны переноситься на новую строку при нехватке места, иметь белый фон, скруглённые углы и лёгкую тень; содержимое карточки располагается вертикально — сверху картинка, затем заголовок и текст.
+
+<details>
+<summary><b>Готовая html разметка</b></summary>
+
+```html
+<main class="cards">
+  <div class="card">
+    <div class="card__cover">
+      <img src="https://picsum.photos/300/200?1" alt="Иллюстрация 1" />
+    </div>
+    <h3>Карточка 1</h3>
+    <p>Краткое описание первой карточки для примера.</p>
+  </div>
+  <div class="card">
+    <div class="card__cover">
+      <img src="https://picsum.photos/300/200?2" alt="Иллюстрация 2" />
+    </div>
+    <h3>Карточка 2</h3>
+    <p>Краткое описание второй карточки для примера.</p>
+  </div>
+  <div class="card">
+    <div class="card__cover">
+      <img src="https://picsum.photos/300/200?3" alt="Иллюстрация 3" />
+    </div>
+    <h3>Карточка 3</h3>
+    <p>Краткое описание третьей карточки для примера.</p>
+  </div>
+  <div class="card">
+    <div class="card__cover">
+      <img src="https://picsum.photos/300/200?4" alt="Иллюстрация 4" />
+    </div>
+    <h3>Карточка 4</h3>
+    <p>Краткое описание четвёртой карточки для примера.</p>
+  </div>
+</main>
+```
+
+</details>
+
+---
+
+### Задание 3. Цельная страница с прижатым футером — объединяющая практика
+
+Собери страницу целиком: шапка из Задания 1, карточки из Задания 2 внутри `main`, и футер с контактной информацией. Сделай так, чтобы футер всегда оставался внизу окна браузера, даже если карточек мало и контента на странице недостаточно для заполнения экрана. Добавь фоновое изображение для всей страницы.
+
+<details>
+<summary><b>Готовая html разметка</b></summary>
+
+```html
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <title>Задание 3</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body class="page">
+  <header class="site-header">
+    <div class="logo">MyLogo</div>
+    <div class="site-title">Мир животных</div>
+    <nav class="site-nav">
+      <a href="#">Главная</a>
+      <a href="#">Каталог</a>
+      <a href="#">Контакты</a>
+    </nav>
+  </header>
+
+  <main class="cards">
+    <div class="card">
+      <div class="card__cover">
+        <img src="https://picsum.photos/300/200?11" alt="Кот" />
+      </div>
+      <h3>Кошки</h3>
+      <p>Ласковые и независимые питомцы.</p>
+    </div>
+    <div class="card">
+      <div class="card__cover">
+        <img src="https://picsum.photos/300/200?12" alt="Собака" />
+      </div>
+      <h3>Собаки</h3>
+      <p>Верные друзья и компаньоны.</p>
+    </div>
+  </main>
+
+  <footer class="site-footer">
+    <p>Телефон: +7 900 000-00-00 · Email: info@example.com</p>
+  </footer>
+</body>
+</html>
+```
+
+</details>
 
 ---
 
