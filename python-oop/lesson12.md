@@ -105,7 +105,6 @@ print(c())   # 1
 print(c())   # 2
 
 # Сбросить счётчик или получить текущее значение без вызова — непросто.
-# Придётся возвращать несколько функций или использовать изменяемый контейнер.
 ```
 
 Вариант с классом и `__call__`:
@@ -240,14 +239,14 @@ def process_payment(amount):
 Разберём, что происходит по шагам:
 
 ```python
-# Шаг 1: Python видит @Logger и выполняет:
-process_payment = Logger(process_payment)
+# Шаг 1: Python видит @Logger и выполняет: process_payment = Logger(process_payment)
 # Теперь process_payment — это объект класса Logger,
 # а исходная функция сохранена в self.func
 
 # Шаг 2: Вызов задекорированной функции:
 process_payment(1500)
 # Python видит скобки и вызывает __call__ объекта Logger
+process_payment(2000)
 ```
 
 Вывод:
@@ -256,9 +255,6 @@ process_payment(1500)
 [LOG] Вызов process_payment (всего вызовов: 1)
 Обрабатываем платёж: 1500 руб.
 [LOG] process_payment завершена, результат: True
-
-process_payment(2000)
-
 [LOG] Вызов process_payment (всего вызовов: 2)
 Обрабатываем платёж: 2000 руб.
 [LOG] process_payment завершена, результат: True
