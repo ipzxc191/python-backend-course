@@ -511,7 +511,14 @@ import tempfile
 class TempDirectory:
     """
     Контекстный менеджер для работы с временной директорией.
-    Создаёт директорию при входе, удаляет её со всем содержимым при выходе.
+
+    При входе в with:
+    1. Создаёт временную директорию в текущей папке проекта.
+    2. Возвращает объект TempDirectory.
+
+    При выходе из with:
+    1. Удаляет директорию со всем её содержимым.
+    2. Если внутри блока произошла ошибка — всё равно удаляет директорию.
     """
 
     def __init__(self, prefix="tmp_", cleanup=True):
@@ -520,35 +527,67 @@ class TempDirectory:
         self.path = None
 
     def __enter__(self):
-        self.path = tempfile.mkdtemp(prefix=self.prefix)
+        # Получаем путь к текущей папке проекта
+        project_dir = os.getcwd()
+
+        # Создаём временную директорию внутри проекта
+        self.path = tempfile.mkdtemp(
+            prefix=self.prefix,
+            dir=project_dir
+        )
+
         print(f"Создана временная директория: {self.path}")
+
         return self
 
     def __exit__(self, exc_type, exc_val, exc_tb):
+        # Удаляем временную директорию со всем содержимым
         if self.cleanup and self.path and os.path.exists(self.path):
             shutil.rmtree(self.path)
+
             print(f"Временная директория удалена: {self.path}")
 
+        # Если внутри with произошла ошибка
         if exc_type is not None:
-            print(f"Директория удалена после ошибки: {exc_type.__name__}: {exc_val}")
+            print(
+                f"Директория удалена после ошибки: "
+                f"{exc_type.__name__}: {exc_val}"
+            )
 
     def create_file(self, filename, content=""):
         filepath = os.path.join(self.path, filename)
-        with open(filepath, 'w', encoding='utf-8') as f:
+
+        with open(filepath, "w", encoding="utf-8") as f:
             f.write(content)
+
         return filepath
 
     def __repr__(self):
-        return f"TempDirectory(path={self.path!r}, cleanup={self.cleanup})"
+        return (
+            f"TempDirectory("
+            f"path={self.path!r}, "
+            f"cleanup={self.cleanup}"
+            f")"
+        )
 
 
 with TempDirectory(prefix="upload_") as tmp:
-    avatar_path = tmp.create_file("avatar.jpg", content="<binary data>")
-    report_path = tmp.create_file("report.csv", content="id,name\n1,Alice")
+    avatar_path = tmp.create_file(
+        "avatar.jpg",
+        content="<binary data>"
+    )
+
+    report_path = tmp.create_file(
+        "report.csv",
+        content="id,name\n1,Alice"
+    )
+
     print(f"Файлов в директории: {len(os.listdir(tmp.path))}")
 
+    # Здесь можно открыть папку проекта
+    # и увидеть временную директорию upload_xxxxxxxx
+
 print(f"Директория существует: {os.path.exists(tmp.path)}")
-# Директория существует: False
 ```
 
 ---
