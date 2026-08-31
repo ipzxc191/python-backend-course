@@ -44,6 +44,7 @@
 
 - [Урок 20. Области видимости и замыкания: практические примеры](lesson20.md)
 - [Урок 21. DOM + BOM: `querySelector`, создание/изменение элементов, события, `window`/`location`/`localStorage`](lesson21.md)
+- [Урок 22. Асинхронность: `callback` → `Promise` → `async`/`await`, `fetch`](lesson22.md)
 
 
 ---

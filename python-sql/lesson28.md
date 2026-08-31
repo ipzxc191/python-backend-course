@@ -1,5 +1,247 @@
 # Урок 28. Финальный проект — Финализация
 
+<details>
+<summary><b>Готовый seed файл для заполнения БД с комментариями</b></summary>
+
+
+```python
+# seed.py
+"""
+Сидер для Blog API (SQLAlchemy ORM).
+
+Это тот же самый сидер, что мы писали в Уроке 12 — только поверх ORM
+вместо raw sqlite3.cursor(). Сравните подходы:
+
+    Урок 12 (raw sqlite3)                    Этот файл (SQLAlchemy ORM)
+    ─────────────────────────────────────    ─────────────────────────────────────
+    cursor.execute('DELETE FROM ...')        session.execute(delete(Model))
+    cursor.executemany('INSERT ...', rows)   session.add_all([Model(...), ...])
+    SELECT id заново, чтобы узнать id        session.flush() — id уже на объекте
+    вручную считать внешние ключи            relationship (post.tags = [...])
+                                              сам управляет таблицей post_tags
+
+Запуск:
+    python seed.py
+"""
+
+import random
+from datetime import date
+
+from faker import Faker
+from sqlalchemy import delete
+from sqlalchemy.orm import Session
+
+from database import engine
+from models import Base, User, Post, Comment, Tag, post_tags
+
+# -----------------------------------------------------------------
+# Константы — количество записей (как и в Уроке 12)
+# -----------------------------------------------------------------
+NUM_USERS = 12
+NUM_POSTS = 25
+NUM_COMMENTS = 60
+
+# -----------------------------------------------------------------
+# Фиксированный список тегов — по той же причине, что в Уроке 12
+# продукты магазина брались из готового списка, а не fake.word():
+# случайные слова не похожи на реальные теги технического блога.
+# -----------------------------------------------------------------
+TAG_NAMES = [
+    'python', 'backend', 'sql', 'fastapi', 'django',
+    'алгоритмы', 'дебаггинг', 'тестирование', 'api', 'devops',
+    'базы-данных', 'асинхронность',
+]
+
+fake = Faker('ru_RU')
+Faker.seed(42)  # воспроизводимый результат, как и в Уроке 12
+
+
+# -----------------------------------------------------------------
+# Очистка таблиц
+# -----------------------------------------------------------------
+def clear_tables(session: Session) -> None:
+    """
+    Удаляет все строки из таблиц в правильном порядке — зависимые таблицы первыми.
+
+    В Уроке 12 порядок задавался вручную через несколько DELETE-запросов.
+    Здесь то же самое, но через session.execute(delete(Model)) — это
+    core-уровень SQLAlchemy, работает быстрее, чем загружать все объекты
+    через ORM и удалять их по одному.
+
+    post_tags удаляем отдельным delete(), так как это Table, а не класс-модель
+    (напоминание из Урока 26 финального проекта) — обратиться к ней напрямую
+    через ORM-класс, как к Comment или Post, нельзя.
+    """
+    session.execute(delete(Comment))
+    session.execute(delete(post_tags))
+    session.execute(delete(Post))
+    session.execute(delete(Tag))
+    session.execute(delete(User))
+    session.commit()
+    print('Таблицы очищены.')
+
+
+# -----------------------------------------------------------------
+# Генерация пользователей
+# -----------------------------------------------------------------
+def seed_users(session: Session, count: int = NUM_USERS) -> list[User]:
+    """
+    Генерирует пользователей с уникальными username и email.
+
+    Отличие от Урока 12: там executemany() принимал список кортежей
+    и итоговые id узнавались отдельным SELECT после вставки.
+    Здесь session.add_all() принимает список ORM-объектов, а после
+    session.flush() каждый объект уже содержит свой настоящий id —
+    отдельный SELECT для этого не нужен.
+    """
+    users = [
+        User(
+            username=fake.unique.user_name(),
+            email=fake.unique.email(),
+            created_at=str(fake.date_between(start_date='-2y', end_date='today')),
+        )
+        for _ in range(count)
+    ]
+
+    session.add_all(users)
+    session.flush()  # получаем id для каждого user, не коммитя транзакцию целиком
+
+    print(f'Пользователей добавлено: {len(users)}')
+    return users
+
+
+# -----------------------------------------------------------------
+# Генерация тегов
+# -----------------------------------------------------------------
+def seed_tags(session: Session) -> list[Tag]:
+    """Вставляет фиксированный список тегов — аналог seed_categories из Урока 12."""
+    tags = [Tag(name=name) for name in TAG_NAMES]
+
+    session.add_all(tags)
+    session.flush()
+
+    print(f'Тегов добавлено: {len(tags)}')
+    return tags
+
+
+# -----------------------------------------------------------------
+# Генерация постов
+# -----------------------------------------------------------------
+def seed_posts(session: Session, users: list[User], tags: list[Tag], count: int = NUM_POSTS) -> list[Post]:
+    """
+    Генерирует посты со случайным автором, случайным статусом и случайным
+    набором тегов (0-3 тега на пост, без повторов).
+
+    Ключевое отличие от Урока 12: там для связи многие-ко-многим пришлось бы
+    вручную собирать пары (post_id, tag_id) и вставлять их в post_tags
+    отдельным executemany(). Здесь достаточно присвоить relationship —
+    post.tags = [...] — и SQLAlchemy сам вставит нужные строки в post_tags
+    при коммите (это мы разбирали в Уроке 24 и в models.py финального проекта).
+    """
+    posts = []
+
+    for _ in range(count):
+        author = fake.random_element(users)
+
+        # Статус: чаще published, реже draft — реалистичное распределение,
+        # а не 50/50, как дал бы fake.random_element(['published', 'draft'])
+        status = random.choices(['published', 'draft'], weights=[3, 1])[0]
+
+        num_tags = fake.pyint(min_value=0, max_value=3)
+        post_tags_selection = (
+            fake.random_elements(tags, length=num_tags, unique=True) if num_tags > 0 else []
+        )
+
+        post = Post(
+            title=fake.sentence(nb_words=6).rstrip('.'),
+            content='\n\n'.join(fake.paragraphs(nb=3)),
+            status=status,
+            author_id=author.id,
+            created_at=str(fake.date_between(start_date='-1y', end_date='today')),
+        )
+        post.tags = post_tags_selection  # relationship сама заполнит post_tags
+
+        posts.append(post)
+
+    session.add_all(posts)
+    session.flush()
+
+    print(f'Постов добавлено: {len(posts)}')
+    return posts
+
+
+# -----------------------------------------------------------------
+# Генерация комментариев
+# -----------------------------------------------------------------
+def seed_comments(session: Session, users: list[User], posts: list[Post], count: int = NUM_COMMENTS) -> None:
+    """
+    Генерирует комментарии со случайным постом и случайным автором.
+
+    В Уроке 12 для order_items мы получали id постов и товаров через
+    отдельный SELECT после вставки заказов. Здесь у нас уже есть
+    полноценные ORM-объекты posts/users из seed_posts()/seed_users() —
+    их id доступны напрямую (post.id, author.id), без лишнего запроса к базе.
+    """
+    comments = []
+
+    for _ in range(count):
+        post = fake.random_element(posts)
+        author = fake.random_element(users)
+
+        comments.append(
+            Comment(
+                content=fake.sentence(nb_words=12),
+                post_id=post.id,
+                author_id=author.id,
+                created_at=str(fake.date_between(start_date=date.fromisoformat(post.created_at), end_date='today')),
+            )
+        )
+
+    session.add_all(comments)
+    session.flush()
+
+    print(f'Комментариев добавлено: {len(comments)}')
+
+
+# -----------------------------------------------------------------
+# Проверка результата
+# -----------------------------------------------------------------
+def print_stats(session: Session) -> None:
+    """Выводит количество строк в каждой таблице — аналог print_stats из Урока 12."""
+    print('\n--- Статистика базы данных ---')
+    print(f'{"users":15}: {session.query(User).count()} строк')
+    print(f'{"tags":15}: {session.query(Tag).count()} строк')
+    print(f'{"posts":15}: {session.query(Post).count()} строк')
+    print(f'{"comments":15}: {session.query(Comment).count()} строк')
+
+
+# -----------------------------------------------------------------
+# Точка входа
+# -----------------------------------------------------------------
+def main() -> None:
+    # Base.metadata.create_all здесь НЕ вызываем — таблицы уже созданы
+    # через Alembic-миграции (Урок 26). Сидер только наполняет данными.
+
+    with Session(engine) as session:
+        clear_tables(session)
+
+        users = seed_users(session)
+        tags = seed_tags(session)
+        posts = seed_posts(session, users, tags)
+        seed_comments(session, users, posts)
+
+        session.commit()  # фиксируем всё одной транзакцией
+
+        print_stats(session)
+        print('\nБаза данных успешно заполнена.')
+
+
+if __name__ == '__main__':
+    main()
+```
+
+</details>
+
 ## Остановитесь и посмотрите назад
 
 Прежде чем что-то улучшать — осознайте что сделано.

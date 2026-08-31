@@ -37,7 +37,7 @@ class AdminUser(User):
 
 ---
 
-## Что возвращает `super()` — прокси-объект
+## `super()` возвращает **прокси-объект**
 
 Это часто вызывает путаницу: студенты думают, что `super()` возвращает объект родительского класса. Это неверно.
 
@@ -172,7 +172,7 @@ secure_db = SecureDatabaseConnection(
 
 Вывод при создании объекта:
 
-```
+```bash
 [Connection.__init__] host=db.example.com, port=5432
 [DatabaseConnection.__init__] database=production, pool=5
 [SecureDatabaseConnection.__init__] ssl_cert=path/to/cert.pem
@@ -184,7 +184,7 @@ secure_db = SecureDatabaseConnection(
 secure_db.connect()
 ```
 
-```
+```bash
 [SecureDatabaseConnection.connect] установка SSL...
 [Connection.connect] подключение к db.example.com:5432
 [DatabaseConnection.connect] пул из 5 соединений создан
