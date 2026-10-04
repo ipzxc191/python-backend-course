@@ -32,6 +32,7 @@
 - [Урок 20. Операторы break, continue](lesson20.md)
 - [Урок 21. Цикл while: сложные условия (and, or)](lesson21.md)
 - [Урок 22. Цикл for](lesson22.md)
+- [Урок 23. Универсальный цикл for i in range(len(list)). Функция enumerate()](lesson23.md)
 
 ---
 
