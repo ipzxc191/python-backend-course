@@ -30,6 +30,7 @@
 
 - [Урок 19. Цикл while: основы. Счётчики, while True](lesson19.md)
 - [Урок 20. Операторы break, continue](lesson20.md)
+- [Урок 21. Цикл while: сложные условия (and, or)](lesson21.md)
 
 ---
 
