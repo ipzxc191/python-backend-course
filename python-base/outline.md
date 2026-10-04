@@ -34,6 +34,7 @@
 - [Урок 22. Цикл for](lesson22.md)
 - [Урок 23. Универсальный цикл for i in range(len(list)). Функция enumerate()](lesson23.md)
 - [Урок 24. Примеры задач, решаемых с помощью цикла for](lesson24.md)
+- [Урок 25. Блок else для циклов for и while. Паттерн с флагом](lesson25.md)
 
 ---
 
